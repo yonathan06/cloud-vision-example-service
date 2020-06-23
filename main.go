@@ -28,9 +28,12 @@ func main() {
 	defer client.Close()
 
 	http.HandleFunc("/imageml", http.HandlerFunc(higherOrderHandler(client)))
-
-	log.Print("Server started on localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf("Server started on localhost:%v", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 func writeError(w http.ResponseWriter, message string, statusCode int) {
