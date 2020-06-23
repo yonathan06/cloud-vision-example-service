@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
-	"mime"
 	"net/http"
 	"os"
 
@@ -15,7 +13,6 @@ import (
 )
 
 const maxUploadSize = 2 * 1024 // 2 MB
-const uploadPath = "./tmp"
 
 func main() {
 
@@ -70,23 +67,20 @@ func higherOrderHandler(client *vision.ImageAnnotatorClient) http.HandlerFunc {
 			return
 		}
 
-		fileExtension, _ := mime.ExtensionsByType(fileType)
-
-		imageOnDiskPath := fmt.Sprintf("%v/%v%v", uploadPath, rand.Int(), fileExtension[0])
-		fileOnDisk, err := os.Create(imageOnDiskPath)
+		tmpFile, err := ioutil.TempFile("/tmp", "")
 		if err != nil {
 			fmt.Printf("Error creating new file on disk %v\n", err)
 			writeError(w, "Invalid File", http.StatusInternalServerError)
 			return
 		}
-		defer os.Remove(imageOnDiskPath)
+		defer os.Remove(tmpFile.Name())
 
-		fileOnDisk.Write(fileBytes)
-		fileOnDisk.Close()
+		tmpFile.Write(fileBytes)
+		tmpFile.Close()
 
 		ctx := context.Background()
 
-		fileForImageVision, err := os.Open(imageOnDiskPath)
+		fileForImageVision, err := os.Open(tmpFile.Name())
 		if err != nil {
 			fmt.Printf("Failed to create image: %v\n", err)
 			writeError(w, "Internal server error", http.StatusInternalServerError)
