@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITC Image ML</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+  <style>
+    .canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    .face-rect {
+      position: absolute;
+      border: 2px solid blue;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container mt-5">
+    <h1 class="display-3">ITC Image Recognition</h1>
+    <form id="mainForm" enctype="multipart/form-data" class="form-group">
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
+        </div>
+        <div class="custom-file">
+          <input type="file" accept="image/*" class="custom-file-input" id="inputGroupFile01"
+            aria-describedby="inputGroupFileAddon01" name="image" />
+          <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+        </div>
+      </div>
+      <div id="imageHolder" class="mb-4 position-relative">
+        <img src="" class="d-none" />
+        <div id="canvas" class="canvas"></div>
+      </div>
+      <div>
+        <button type="submit" class="btn btn-block btn-primary">Send</button>
+      </div>
+    </form>
+  </div>
+  <script>
+
+    const mockResponse = [
+      {
+        "bounding_poly":
+        {
+          "vertices": [
+            { "x": 836, "y": 398 },
+            { "x": 1168, "y": 398 },
+            { "x": 1168, "y": 783 },
+            { "x": 836, "y": 783 }
+          ]
+        },
+        "fd_bounding_poly": {
+          "vertices": [
+            { "x": 860, "y": 465 },
+            { "x": 1136, "y": 465 },
+            { "x": 1136, "y": 754 },
+            { "x": 860, "y": 754 }
+          ]
+        },
+        "landmarks": [
+          {
+            "type": 1,
+            "position": {
+              "x": 947.9097,
+              "y": 588.8392,
+              "z": 0.0009703636
+            }
+          },
+          {
+            "type": 2,
+            "position": { "x": 1051.9491, "y": 588.61487, "z": -3.1562905 }
+          }, { "type": 3, "position": { "x": 917.10443, "y": 565.62085, "z": 6.9726305 } }, { "type": 4, "position": { "x": 974.5708, "y": 570.4481, "z": -21.596943 } }, { "type": 5, "position": { "x": 1023.0477, "y": 570.19934, "z": -23.1064 } }, { "type": 6, "position": { "x": 1083.255, "y": 567.09686, "z": 1.7052927 } }, { "type": 7, "position": { "x": 998.6709, "y": 589.61395, "z": -21.49055 } }, { "type": 8, "position": { "x": 998.7107, "y": 653.4209, "z": -42.99315 } }, { "type": 9, "position": { "x": 998.7643, "y": 681.2467, "z": -17.308502 } }, { "type": 10, "position": { "x": 999.26184, "y": 720.5552, "z": -6.3504486 } }, { "type": 11, "position": { "x": 950.9355, "y": 685.17474, "z": 11.939411 } }, { "type": 12, "position": { "x": 1049.7142, "y": 686.32623, "z": 9.052231 } }, { "type": 13, "position": { "x": 1000.14246, "y": 700.0983, "z": -8.37749 } }, { "type": 14, "position": { "x": 1027.5142, "y": 656.8223, "z": -7.70345 } }, { "type": 15, "position": { "x": 972.4656, "y": 653.533, "z": -5.740765 } }, { "type": 16, "position": { "x": 999.51294, "y": 665.37427, "z": -19.818563 } }, { "type": 17, "position": { "x": 946.69525, "y": 579.6587, "z": -6.3779597 } }, { "type": 18, "position": { "x": 967.76935, "y": 591.36346, "z": -0.44235468 } }, { "type": 19, "position": { "x": 947.177, "y": 596.2431, "z": -0.15792418 } }, { "type": 20, "position": { "x": 928.84937, "y": 590.028, "z": 9.31526 } }, { "type": 21, "position": { "x": 1052.7777, "y": 579.63385, "z": -9.583725 } }, { "type": 22, "position": { "x": 1071.9099, "y": 589.67566, "z": 4.8781962 } }, { "type": 23, "position": { "x": 1052.5817, "y": 596.0996, "z": -3.3771777 } }, { "type": 24, "position": { "x": 1031.558, "y": 591.4761, "z": -2.3131819 } }, { "type": 25, "position": { "x": 945.8555, "y": 558.16614, "z": -14.328995 } }, { "type": 26, "position": { "x": 1052.4185, "y": 559.3083, "z": -17.670345 } }, { "type": 27, "position": { "x": 888.9373, "y": 618.2767, "z": 123.781296 } }, { "type": 28, "position": { "x": 1117.2108, "y": 615.36127, "z": 117.01484 } }, { "type": 31, "position": { "x": 998.6864, "y": 568.2773, "z": -25.802488 } }, { "type": 32, "position": { "x": 998.6674, "y": 764.8741, "z": 12.231529 } }, { "type": 33, "position": { "x": 908.59424, "y": 701.57086, "z": 93.18215 } }, { "type": 34, "position": { "x": 1093.616, "y": 700.5973, "z": 87.88866 } }, { "position": { "x": 928.9343, "y": 651.7588, "z": 17.117004 } }, { "position": { "x": 1073.0164, "y": 651.8224, "z": 12.701202 } }], "roll_angle": -0.15912488, "pan_angle": -1.7883183, "tilt_angle": -7.4209437, "detection_confidence": 0.9521171, "landmarking_confidence": 0.84717417, "joy_likelihood": 5, "sorrow_likelihood": 1, "anger_likelihood": 1, "surprise_likelihood": 1, "under_exposed_likelihood": 1, "blurred_likelihood": 1, "headwear_likelihood": 1
+      }, { "bounding_poly": { "vertices": [{ "x": 21 }, { "x": 359 }, { "x": 359, "y": 384 }, { "x": 21, "y": 384 }] }, "fd_bounding_poly": { "vertices": [{ "x": 59, "y": 70 }, { "x": 336, "y": 70 }, { "x": 336, "y": 353 }, { "x": 59, "y": 353 }] }, "landmarks": [{ "type": 1, "position": { "x": 151.63846, "y": 184.4406, "z": 0.0012938082 } }, { "type": 2, "position": { "x": 255.1229, "y": 185.00491, "z": 16.159193 } }, { "type": 3, "position": { "x": 117.26474, "y": 162.01903, "z": 1.5517685 } }, { "type": 4, "position": { "x": 180.86801, "y": 162.12805, "z": -16.068697 } }, { "type": 5, "position": { "x": 231.98648, "y": 165.51382, "z": -8.24758 } }, { "type": 6, "position": { "x": 285.76483, "y": 158.84842, "z": 28.488201 } }, { "type": 7, "position": { "x": 207.68939, "y": 184.09525, "z": -11.986755 } }, { "type": 8, "position": { "x": 214.22258, "y": 251.48155, "z": -36.160427 } }, { "type": 9, "position": { "x": 207.50183, "y": 280.1224, "z": -11.304372 } }, { "type": 10, "position": { "x": 205.46655, "y": 316.48157, "z": -1.9537029 } }, { "type": 11, "position": { "x": 157.70164, "y": 285.4502, "z": 9.066426 } }, { "type": 12, "position": { "x": 246.85301, "y": 284.76025, "z": 22.934732 } }, { "type": 13, "position": { "x": 207.68198, "y": 294.51752, "z": -3.0419292 } }, { "type": 14, "position": { "x": 234.45529, "y": 254.61768, "z": 4.633122 } }, { "type": 15, "position": { "x": 180.2115, "y": 252.09431, "z": -3.7573042 } }, { "type": 16, "position": { "x": 208.56967, "y": 263.16727, "z": -13.190505 } }, { "type": 17, "position": { "x": 151.15875, "y": 174.47758, "z": -6.273593 } }, { "type": 18, "position": { "x": 172.84198, "y": 186.81248, "z": 3.4194586 } }, { "type": 19, "position": { "x": 151.25009, "y": 192.19106, "z": -0.59132767 } }, { "type": 20, "position": { "x": 131.2462, "y": 185.34148, "z": 5.580422 } }, { "type": 21, "position": { "x": 257.32925, "y": 174.97026, "z": 10.208853 } }, { "type": 22, "position": { "x": 273.9448, "y": 185.81099, "z": 28.22344 } }, { "type": 23, "position": { "x": 256.117, "y": 193.05551, "z": 15.825124 } }, { "type": 24, "position": { "x": 233.53105, "y": 186.92795, "z": 12.904179 } }, { "type": 25, "position": { "x": 149.94211, "y": 153.28107, "z": -13.9149 } }, { "type": 26, "position": { "x": 260.2589, "y": 153.07657, "z": 3.3799617 } }, { "type": 27, "position": { "x": 70.67595, "y": 213.67108, "z": 112.60352 } }, { "type": 28, "position": { "x": 302.31927, "y": 217.80074, "z": 148.17557 } }, { "type": 31, "position": { "x": 208.57309, "y": 162.50972, "z": -15.489426 } }, { "type": 32, "position": { "x": 203.09781, "y": 363.6575, "z": 15.20067 } }, { "type": 33, "position": { "x": 98.48168, "y": 300.02368, "z": 82.17896 } }, { "type": 34, "position": { "x": 282.9428, "y": 298.6381, "z": 111.68678 } }, { "position": { "x": 131.53633, "y": 248.6254, "z": 11.066388 } }, { "position": { "x": 272.44052, "y": 248.79399, "z": 33.3413 } }], "roll_angle": 0.5479095, "pan_angle": 9.096375, "tilt_angle": -5.147658, "detection_confidence": 0.8929044, "landmarking_confidence": 0.62333405, "joy_likelihood": 5, "sorrow_likelihood": 1, "anger_likelihood": 1, "surprise_likelihood": 1, "under_exposed_likelihood": 1, "blurred_likelihood": 1, "headwear_likelihood": 1 }, { "bounding_poly": { "vertices": [{ "x": 42, "y": 405 }, { "x": 377, "y": 405 }, { "x": 377, "y": 794 }, { "x": 42, "y": 794 }] }, "fd_bounding_poly": { "vertices": [{ "x": 67, "y": 471 }, { "x": 340, "y": 471 }, { "x": 340, "y": 757 }, { "x": 67, "y": 757 }] }, "landmarks": [{ "type": 1, "position": { "x": 150.85156, "y": 586.6316, "z": -0.00014695525 } }, { "type": 2, "position": { "x": 250.48143, "y": 585.4851, "z": -11.16617 } }, { "type": 3, "position": { "x": 118.43585, "y": 565.4485, "z": 12.647927 } }, { "type": 4, "position": { "x": 174.0442, "y": 563.6235, "z": -20.944397 } }, { "type": 5, "position": { "x": 222.38776, "y": 564.5332, "z": -26.41886 } }, { "type": 6, "position": { "x": 286.95923, "y": 566.30365, "z": -6.4001594 } }, { "type": 7, "position": { "x": 197.53119, "y": 584.43414, "z": -25.478329 } }, { "type": 8, "position": { "x": 194.36455, "y": 644.08484, "z": -54.968773 } }, { "type": 9, "position": { "x": 197.4302, "y": 677.4711, "z": -33.533318 } }, { "type": 10, "position": { "x": 198.8869, "y": 715.9759, "z": -27.588852 } }, { "type": 11, "position": { "x": 153.74236, "y": 689.09454, "z": -2.2396567 } }, { "type": 12, "position": { "x": 250.6726, "y": 688.8128, "z": -12.146609 } }, { "type": 13, "position": { "x": 199.78307, "y": 694.85095, "z": -26.871473 } }, { "type": 14, "position": { "x": 226.5451, "y": 652.88104, "z": -22.658983 } }, { "type": 15, "position": { "x": 170.6041, "y": 651.4387, "z": -16.216848 } }, { "type": 16, "position": { "x": 197.64232, "y": 660.57196, "z": -33.778744 } }, { "type": 17, "position": { "x": 149.21361, "y": 578.0537, "z": -5.254879 } }, { "type": 18, "position": { "x": 170.18604, "y": 587.00037, "z": -2.321095 } }, { "type": 19, "position": { "x": 149.67677, "y": 593.2014, "z": -1.0274765 } }, { "type": 20, "position": { "x": 131.44054, "y": 588.6724, "z": 10.945477 } }, { "type": 21, "position": { "x": 251.1833, "y": 576.5389, "z": -16.611952 } }, { "type": 22, "position": { "x": 271.66763, "y": 588.01935, "z": -4.9288745 } }, { "type": 23, "position": { "x": 250.8402, "y": 592.4012, "z": -12.40497 } }, { "type": 24, "position": { "x": 229.29475, "y": 585.6057, "z": -8.881038 } }, { "type": 25, "position": { "x": 146.23074, "y": 555.0347, "z": -9.9681635 } }, { "type": 26, "position": { "x": 253.63783, "y": 555.6439, "z": -22.087654 } }, { "type": 27, "position": { "x": 96.361374, "y": 625.13257, "z": 125.65949 } }, { "type": 28, "position": { "x": 329.38797, "y": 633.7102, "z": 99.362564 } }, { "type": 31, "position": { "x": 197.87642, "y": 562.5394, "z": -26.95135 } }, { "type": 32, "position": { "x": 200.33488, "y": 761.9142, "z": -14.858177 } }, { "type": 33, "position": { "x": 120.03168, "y": 714.55554, "z": 81.943535 } }, { "type": 34, "position": { "x": 302.07227, "y": 707.98615, "z": 61.26358 } }, { "position": { "x": 132.1976, "y": 652.3479, "z": 10.214381 } }, { "position": { "x": 273.45822, "y": 651.741, "z": -5.4571943 } }], "roll_angle": -0.22415988, "pan_angle": -6.4290776, "tilt_angle": 0.1433277, "detection_confidence": 0.96609247, "landmarking_confidence": 0.73228526, "joy_likelihood": 5, "sorrow_likelihood": 1, "anger_likelihood": 1, "surprise_likelihood": 1, "under_exposed_likelihood": 1, "blurred_likelihood": 1, "headwear_likelihood": 1 }, { "bounding_poly": { "vertices": [{ "x": 440, "y": 399 }, { "x": 772, "y": 399 }, { "x": 772, "y": 785 }, { "x": 440, "y": 785 }] }, "fd_bounding_poly": { "vertices": [{ "x": 468, "y": 474 }, { "x": 745, "y": 474 }, { "x": 745, "y": 756 }, { "x": 468, "y": 756 }] }, "landmarks": [{ "type": 1, "position": { "x": 554.9435, "y": 590.09955, "z": 0.0006160736 } }, { "type": 2, "position": { "x": 655.97327, "y": 589.0041, "z": -2.0509033 } }, { "type": 3, "position": { "x": 522.67596, "y": 566.3076, "z": 6.6674957 } }, { "type": 4, "position": { "x": 580.39435, "y": 571.4644, "z": -21.28221 } }, { "type": 5, "position": { "x": 628.94696, "y": 570.797, "z": -22.269869 } }, { "type": 6, "position": { "x": 691.0382, "y": 570.113, "z": 3.0910935 } }, { "type": 7, "position": { "x": 604.2152, "y": 590.107, "z": -20.987354 } }, { "type": 8, "position": { "x": 603.7141, "y": 655.5958, "z": -42.71289 } }, { "type": 9, "position": { "x": 603.2967, "y": 682.6802, "z": -17.057388 } }, { "type": 10, "position": { "x": 603.51855, "y": 721.5083, "z": -6.2345953 } }, { "type": 11, "position": { "x": 555.9871, "y": 684.9103, "z": 11.660113 } }, { "type": 12, "position": { "x": 654.99146, "y": 686.42773, "z": 9.812238 } }, { "type": 13, "position": { "x": 603.94696, "y": 700.6599, "z": -8.214262 } }, { "type": 14, "position": { "x": 633.30054, "y": 657.4616, "z": -7.1158724 } }, { "type": 15, "position": { "x": 576.05237, "y": 652.7884, "z": -5.673066 } }, { "type": 16, "position": { "x": 604.1139, "y": 667.0978, "z": -19.527485 } }, { "type": 17, "position": { "x": 553.1539, "y": 580.90686, "z": -6.4023447 } }, { "type": 18, "position": { "x": 575.8156, "y": 592.71735, "z": -0.28277254 } }, { "type": 19, "position": { "x": 553.9046, "y": 597.7791, "z": -0.16531563 } }, { "type": 20, "position": { "x": 535.9456, "y": 590.6469, "z": 9.111558 } }, { "type": 21, "position": { "x": 656.6827, "y": 579.0507, "z": -8.453577 } }, { "type": 22, "position": { "x": 675.8324, "y": 591.2134, "z": 6.2017503 } }, { "type": 23, "position": { "x": 656.1471, "y": 596.80865, "z": -2.257254 } }, { "type": 24, "position": { "x": 634.14746, "y": 591.13074, "z": -1.4755328 } }, { "type": 25, "position": { "x": 551.1223, "y": 559.50275, "z": -14.258833 } }, { "type": 26, "position": { "x": 659.3767, "y": 560.8745, "z": -16.402016 } }, { "type": 27, "position": { "x": 491.45187, "y": 627.04614, "z": 122.4596 } }, { "type": 28, "position": { "x": 721.2038, "y": 610.23065, "z": 118.89453 } }, { "type": 31, "position": { "x": 604.51697, "y": 568.9354, "z": -25.222015 } }, { "type": 32, "position": { "x": 602.6227, "y": 768.14404, "z": 12.279986 } }, { "type": 33, "position": { "x": 509.61948, "y": 696.0319, "z": 91.971725 } }, { "type": 34, "position": { "x": 700.67706, "y": 695.08295, "z": 88.55629 } }, { "position": { "x": 535.0505, "y": 652.1459, "z": 16.71794 } }, { "position": { "x": 676.6617, "y": 653.0542, "z": 13.835738 } }], "roll_angle": 0.16794966, "pan_angle": -1.159742, "tilt_angle": -7.2355785, "detection_confidence": 0.9771022, "landmarking_confidence": 0.671439, "joy_likelihood": 5, "sorrow_likelihood": 1, "anger_likelihood": 1, "surprise_likelihood": 1, "under_exposed_likelihood": 1, "blurred_likelihood": 1, "headwear_likelihood": 1 }]
+    const imageHolder = document.querySelector('#imageHolder>img');
+    const fileInput = document.getElementById('inputGroupFile01');
+    const canvas = document.getElementById('canvas');
+    fileInput.addEventListener('change', event => {
+      const fileReader = new FileReader();
+      fileReader.onload = function () {
+        imageHolder.src = fileReader.result;
+        imageHolder.classList.remove('d-none');
+      }
+      fileReader.readAsDataURL(event.target.files[0]);
+    });
+
+    function paintFaceRect(data) {
+      canvas.innerHTML = '';
+      data.forEach(item => {
+        const div = document.createElement('div');
+        div.classList.add('face-rect');
+        canvas.appendChild(div);
+        const left = item.fd_bounding_poly.vertices[0].x;
+        const top = item.fd_bounding_poly.vertices[0].y;
+        const right = item.fd_bounding_poly.vertices[2].x;
+        const bottom = item.fd_bounding_poly.vertices[2].y;
+        div.style.left = left + 'px';
+        div.style.top = top + 'px';
+        div.style.width = (right - left) + 'px';
+        div.style.height = (bottom - top) + 'px';
+        console.log("div", div);
+      });
+    }
+
+    document.getElementById("mainForm").addEventListener('submit', event => {
+      event.preventDefault();
+      const formData = new FormData();
+      formData.append('image', fileInput.files[0]);
+      fetch('http://localhost:8080/imageml?pass=hackyourfuture20', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => paintFaceRect(data));
+     
+    })
+  </script>
+</body>
+
+</html>

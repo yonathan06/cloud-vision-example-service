@@ -38,8 +38,39 @@ func writeError(w http.ResponseWriter, message string, statusCode int) {
 	w.Write([]byte(message))
 }
 
+func sendOptionsResponse(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1:5500")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
+func checkAuthorization(w http.ResponseWriter, r *http.Request) bool {
+	passes, ok := r.URL.Query()["pass"]
+	if !ok || len(passes[0]) < 1 {
+		writeError(w, "Unauthorized", http.StatusUnauthorized)
+		return false
+	}
+
+	pass := passes[0]
+
+	if pass != "hackyourfuture20" {
+		writeError(w, "Unauthorized", http.StatusUnauthorized)
+		return false
+	}
+
+	return true
+}
+
 func higherOrderHandler(client *vision.ImageAnnotatorClient) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sendOptionsResponse(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
+		ok := checkAuthorization(w, r)
+		if !ok {
+			return
+		}
 		if err := r.ParseMultipartForm(maxUploadSize); err != nil {
 			fmt.Printf("Could not parse multipart form %v\n", err)
 			writeError(w, "Internal server error", http.StatusInternalServerError)
@@ -62,8 +93,9 @@ func higherOrderHandler(client *vision.ImageAnnotatorClient) http.HandlerFunc {
 		fileType := http.DetectContentType(fileBytes)
 		if fileType != "image/jpg" &&
 			fileType != "image/jpeg" &&
-			fileType != "image/png" {
-			writeError(w, "Support only image/jpg image/jpeg & image/png", http.StatusBadRequest)
+			fileType != "image/png" &&
+			fileType != "image/webp" {
+			writeError(w, "Support only image/jpg image/jpeg image/webp & image/png", http.StatusBadRequest)
 			return
 		}
 
@@ -84,24 +116,29 @@ func higherOrderHandler(client *vision.ImageAnnotatorClient) http.HandlerFunc {
 		if err != nil {
 			fmt.Printf("Failed to create image: %v\n", err)
 			writeError(w, "Internal server error", http.StatusInternalServerError)
+			return
 		}
 
 		image, err := vision.NewImageFromReader(fileForImageVision)
 		if err != nil {
 			fmt.Printf("Failed to create image: %v\n", err)
 			writeError(w, "Internal server error", http.StatusInternalServerError)
+			return
 		}
-		labels, err := client.DetectLabels(ctx, image, nil, 10)
+
+		faces, err := client.DetectFaces(ctx, image, nil, 4)
 		if err != nil {
-			fmt.Printf("Failed to detect labels: %v\n", err)
+			fmt.Printf("Failed to detect faces: %v\n", err)
 			writeError(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
-		jsonData, err := json.Marshal(labels)
+
+		jsonData, err := json.Marshal(faces)
 
 		if err != nil {
 			fmt.Printf("Error parsing data to json: %v\n", err)
 			writeError(w, "Internal server error", http.StatusInternalServerError)
+			return
 		}
 		w.Header().Set("content-type", "application/json")
 		w.Write(jsonData)
