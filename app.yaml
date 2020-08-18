@@ -1,3 +1,4 @@
 runtime: go113
+service: image-ml
 automatic_scaling:
   max_instances: 1

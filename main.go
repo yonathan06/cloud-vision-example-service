@@ -23,13 +23,13 @@ func main() {
 		log.Fatalf("Failed to create client: %v", err)
 	}
 	defer client.Close()
-
+	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("/imageml", http.HandlerFunc(higherOrderHandler(client)))
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-	log.Printf("Server started on localhost:%v", port)
+	log.Printf("Server started on http://localhost:%v", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
