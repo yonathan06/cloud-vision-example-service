@@ -115,7 +115,7 @@
       event.preventDefault();
       const formData = new FormData();
       formData.append('image', fileInput.files[0]);
-      fetch('http://localhost:8080/imageml?pass=hackyourfuture20', {
+      fetch('/imageml?pass=hackyourfuture20', {
         method: 'POST',
         body: formData
       })
